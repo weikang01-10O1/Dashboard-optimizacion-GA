@@ -8,3 +8,4 @@ pandas==3.0.5
 uvicorn==0.52.4
 jinja2==3.1.6
 ortools==9.15.6755
+influxdb_client==1.50.0
