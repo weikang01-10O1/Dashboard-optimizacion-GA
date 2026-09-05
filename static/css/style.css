@@ -1,0 +1,179 @@
+body{
+    margin:0;
+    display:flex;
+    font-family:Arial;
+    background:#FAFAFA;
+}
+
+#sidebar{
+    width:340px;
+    padding:20px;
+    background:#F5F5F5;
+    height:100vh;
+    overflow-y:auto;
+    box-sizing:border-box;
+}
+
+#map{
+    height:100vh;
+    width:100%;
+}
+
+.card{
+    background:#FFFFFF;
+    padding:12px 14px;
+    margin-bottom:12px;
+    border-radius:8px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+
+.card h3{
+    margin:0 0 8px 0;
+    font-size:14px;
+    color:#333;
+    border-bottom:1px solid #EEE;
+    padding-bottom:4px;
+}
+
+.card p{
+    margin:4px 0;
+    font-size:13px;
+    color:#444;
+}
+
+.card .label{
+    font-size:11px;
+    color:#888;
+    text-transform:uppercase;
+    margin:8px 0 2px 0;
+}
+
+.card .path{
+    font-family:Menlo, Consolas, monospace;
+    background:#F0F4F8;
+    padding:6px 8px;
+    border-radius:4px;
+    font-size:12px;
+    word-break:break-all;
+    color:#0F4C81;
+}
+
+table.kv{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:4px;
+    font-size:12px;
+}
+
+table.kv th{
+    text-align:left;
+    color:#666;
+    font-weight:500;
+    padding:3px 4px;
+    width:80px;
+}
+
+table.kv td{
+    text-align:right;
+    padding:3px 4px;
+    color:#222;
+}
+
+table.cmp{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+}
+
+table.cmp th,
+table.cmp td{
+    border:1px solid #EEE;
+    padding:4px 6px;
+    text-align:center;
+}
+
+table.cmp thead th{
+    background:#F0F4F8;
+    color:#333;
+    font-weight:600;
+}
+
+table.cmp tbody th{
+    background:#FAFAFA;
+    color:#555;
+    text-align:left;
+    font-weight:500;
+}
+
+.actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:8px;
+}
+
+.actions button{
+    padding:10px 12px;
+    border:none;
+    border-radius:6px;
+    background:#0F4C81;
+    color:#fff;
+    font-size:13px;
+    cursor:pointer;
+    transition:background 0.15s;
+}
+
+.actions button:hover{
+    background:#0B3A66;
+}
+
+button:disabled{
+    background:#AAA;
+    cursor:not-allowed;
+}
+
+/* ===========================
+   Map 标记样式
+   =========================== */
+.depot-marker-wrap{
+    background: transparent;
+    border: none;
+}
+.depot-marker{
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    line-height: 1;
+}
+.depot-marker .depot-star{
+    font-size: 18px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.step-badge-wrap{
+    background: transparent;
+    border: none;
+}
+.step-badge{
+    width: 26px;
+    height: 26px;
+    background: #0F4C81;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+    line-height: 1;
+    font-family: Arial, sans-serif;
+}

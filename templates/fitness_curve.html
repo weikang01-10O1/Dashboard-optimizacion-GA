@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>GA Fitness Curve</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #FAFAFA;
+            color: #222;
+        }
+        h2 {
+            margin: 0 0 4px 0;
+            color: #0F4C81;
+        }
+        p.subtitle {
+            margin: 0 0 16px 0;
+            color: #666;
+            font-size: 13px;
+        }
+        .stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .stats .stat {
+            background: #fff;
+            border: 1px solid #E5E9EE;
+            border-radius: 6px;
+            padding: 8px 12px;
+            min-width: 120px;
+        }
+        .stats .stat .lbl {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+        }
+        .stats .stat .val {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0F4C81;
+        }
+        #chart-container {
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            width: 900px;
+            max-width: 100%;
+            height: 500px;
+        }
+        .empty {
+            background: #FFF;
+            border: 1px dashed #C9D1D9;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <h2>Genetic Algorithm Fitness Curve</h2>
+    <p class="subtitle">Best distance found per generation (lower = better)</p>
+
+    <div id="stats-container" class="stats"></div>
+
+    <div id="chart-container">
+        <canvas id="chart"></canvas>
+    </div>
+
+    <div id="empty" class="empty" style="display:none;">
+        No fitness history available. Run "Optimize Route" first, then reopen this window.
+    </div>
+
+    <script>
+        (function() {
+            let history = null;
+            let meta = {};
+
+            // Try opener first
+            if (window.opener && window.opener.gaHistory) {
+                history = window.opener.gaHistory;
+                meta = window.opener.gaMeta || {};
+            }
+
+            // Fallback: sessionStorage
+            if (!history) {
+                try {
+                    const raw = sessionStorage.getItem("ga_history");
+                    if (raw) {
+                        history = JSON.parse(raw);
+                    }
+                    const rawMeta = sessionStorage.getItem("ga_meta");
+                    if (rawMeta) {
+                        meta = JSON.parse(rawMeta);
+                    }
+                } catch (e) {
+                    history = null;
+                }
+            }
+
+            if (!history || history.length === 0) {
+                document.getElementById("chart-container").style.display = "none";
+                document.getElementById("stats-container").style.display = "none";
+                document.getElementById("empty").style.display = "block";
+                return;
+            }
+
+            // Render stats
+            const statsContainer = document.getElementById("stats-container");
+            const first = history[0];
+            const last = history[history.length - 1];
+            const min = Math.min.apply(null, history);
+            const stats = [
+                { lbl: "Generations", val: history.length },
+                { lbl: "Initial distance", val: first.toFixed(2) },
+                { lbl: "Final distance", val: last.toFixed(2) },
+                { lbl: "Best distance", val: min.toFixed(2) },
+                { lbl: "Improvement", val: (((first - last) / first) * 100).toFixed(1) + " %" },
+            ];
+            if (meta.total_distance !== undefined) {
+                stats.push({ lbl: "Reported total", val: meta.total_distance + " km" });
+            }
+            statsContainer.innerHTML = stats.map(s =>
+                '<div class="stat"><div class="lbl">' + s.lbl + '</div><div class="val">' + s.val + '</div></div>'
+            ).join("");
+
+            // Render chart
+            const ctx = document.getElementById("chart").getContext("2d");
+            const labels = history.map((_, i) => i + 1);
+
+            new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Best distance",
+                        data: history,
+                        borderColor: "rgb(15, 76, 129)",
+                        backgroundColor: "rgba(15, 76, 129, 0.12)",
+                        pointRadius: 0,
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    scales: {
+                        x: {
+                            title: { display: true, text: "Generation" },
+                            grid: { color: "#EEE" }
+                        },
+                        y: {
+                            title: { display: true, text: "Distance (km)" },
+                            grid: { color: "#EEE" },
+                            beginAtZero: false
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true, position: "top" },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => "Generation " + items[0].label,
+                                label: (item) => "Distance: " + item.parsed.y.toFixed(2) + " km"
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

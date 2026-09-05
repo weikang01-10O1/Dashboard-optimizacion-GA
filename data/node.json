@@ -1,0 +1,22 @@
+[
+    {
+        "id":0,
+        "name":"BIOFARM",
+        "fill":0,
+        "weight":0
+    },
+
+    {
+        "id":1,
+        "name":"VALZD_01",
+        "fill":18,
+        "weight":180
+    },
+
+    {
+        "id":2,
+        "name":"ALBA_01",
+        "fill":56,
+        "weight":560
+    }
+]

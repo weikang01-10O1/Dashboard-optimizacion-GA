@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Smart Waste Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+    <div id="sidebar">
+        <h2>Dashboard</h2>
+
+        <div class="card">
+            <h3>Total Nodes</h3>
+            <p id="nodeCount"></p>
+        </div>
+
+        <div class="card">
+            <h3>Average Fill</h3>
+            <p id="avgFill"></p>
+        </div>
+
+        <div class="card">
+            <h3>Critical Nodes</h3>
+            <p id="critical"></p>
+        </div>
+
+        <!-- ===== 优化路线详情 ===== -->
+        <div class="card route-card">
+            <h3>GA Optimized Route</h3>
+            <p class="label">Path</p>
+            <p id="opt_path" class="path">—</p>
+            <table class="kv">
+                <tr><th>Distance</th><td><span id="opt_distance">—</span> km</td></tr>
+                <tr><th>Time</th><td><span id="opt_time">—</span> min</td></tr>
+                <tr><th>Load</th><td><span id="opt_load">—</span> m³</td></tr>
+                <tr><th>Returns</th><td><span id="opt_returns">—</span></td></tr>
+                <tr><th>Visited</th><td><span id="opt_visited">—</span></td></tr>
+            </table>
+        </div>
+
+        <!-- ===== 传统路线详情 ===== -->
+        <div class="card route-card">
+            <h3>Traditional Route</h3>
+            <p class="label">Path</p>
+            <p id="trad_path" class="path">—</p>
+            <table class="kv">
+                <tr><th>Distance</th><td><span id="trad_distance">—</span> km</td></tr>
+                <tr><th>Time</th><td><span id="trad_time">—</span> min</td></tr>
+                <tr><th>Load</th><td><span id="trad_load">—</span> m³</td></tr>
+                <tr><th>Returns</th><td><span id="trad_returns">—</span></td></tr>
+                <tr><th>Visited</th><td><span id="trad_visited">—</span></td></tr>
+            </table>
+        </div>
+
+        <!-- ===== 对比表 ===== -->
+        <div class="card">
+            <h3>Comparison (GA vs Trad)</h3>
+            <table class="cmp">
+                <thead>
+                    <tr><th></th><th>GA</th><th>Trad</th><th>Δ</th></tr>
+                </thead>
+                <tbody>
+                    <tr><th>Distance (km)</th><td id="cmp_dist_g">—</td><td id="cmp_dist_t">—</td><td id="cmp_dist_d">—</td></tr>
+                    <tr><th>Time (min)</th><td id="cmp_time_g">—</td><td id="cmp_time_t">—</td><td id="cmp_time_d">—</td></tr>
+                    <tr><th>Load (m³)</th><td id="cmp_load_g">—</td><td id="cmp_load_t">—</td><td id="cmp_load_d">—</td></tr>
+                    <tr><th>Returns</th><td id="cmp_ret_g">—</td><td id="cmp_ret_t">—</td><td id="cmp_ret_d">—</td></tr>
+                    <tr><th>Visited</th><td id="cmp_vis_g">—</td><td id="cmp_vis_t">—</td><td>—</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions">
+            <button onclick="simulate()">Increase Waste</button>
+            <button onclick="optimizeRoute()">Optimize Route</button>
+            <button onclick="openFitnessWindow()">View Fitness Curve</button>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+    const nodes = {{ nodes|tojson }};
+    </script>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="/static/js/map.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

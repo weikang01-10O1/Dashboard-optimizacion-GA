@@ -1,0 +1,38 @@
+References (APA 7th edition) — Software & Data Used
+================================================================
+Note:
+- Versions marked [confirmed] were read from the project's runtime environment
+  on 2026-08-30. Versions marked [verify] should be checked against your own
+  `pip freeze` / CDN include before submission.
+- Release years are approximate; confirm the exact year of the version you used.
+
+Backend (Python)
+----------------
+FastAPI. (2024). *FastAPI* (Version 0.141.1) [Computer software]. [confirmed]
+    https://fastapi.tiangolo.com
+
+Google LLC. (2025). *OR-Tools* (Version 9.15.6755) [Computer software]. [verify]
+    https://developers.google.com/optimization
+
+The Pandas Development Team. (2024). *pandas: Powerful Python data analysis
+    toolkit* (Version 3.0.5) [Computer software]. [confirmed]
+    https://doi.org/10.5281/zenodo.3509134
+
+The Pallets team. (2024). *Jinja* (Version 3.1.6) [Computer software]. [confirmed]
+    https://jinja.palletsprojects.com
+
+The Encode team. (2024). *Uvicorn* (Version 0.52.4) [Computer software]. [confirmed]
+    https://www.uvicorn.org
+
+Frontend / Visualization
+------------------------
+Agafonkin, V. (2024). *Leaflet* (Version 1.9.4) [Computer software]. [verify]
+    https://leafletjs.com
+
+Chart.js. (2024). *Chart.js* (Version 4.4.0) [Computer software]. [verify]
+    https://www.chartjs.org
+
+Data source
+-----------
+OpenStreetMap contributors. (2026). *Planet dump* [Data set]. [verify]
+    https://www.openstreetmap.org
