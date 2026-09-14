@@ -1,7 +1,7 @@
 """
 Servicio de extracción de datos desde InfluxDB 2.7.
 
-Extrae los datos de los contenedores (fill, node id, peso, batería, señal,
+Extrae los datos de los contenedores (fill, node id, batería, señal,
 coordenadas y marca de tiempo) desde un bucket de InfluxDB 2.7 y los
 transforma en un formato compatible con NodeService.
 """
@@ -27,7 +27,6 @@ class InfluxDBService:
     # Campos devueltos por la consulta
     FIELDS = [
         "fill",
-        "weight",
         "battery",
         "rssi",
         "snr",
@@ -162,14 +161,13 @@ from(bucket: "{self.bucket}")
         """
         Convertir registros de InfluxDB a actualizaciones de nodos.
 
-        Devuelve {node_id: {"fill": ..., "weight": ...}} listo para que
+        Devuelve {node_id: {"fill": ..., "battery": ...}} listo para que
         NodeService sincronice el estado de los contenedores.
         """
         updates = {}
         for r in records:
             updates[r["node_id"]] = {
                 "fill": r.get("fill"),
-                "weight": r.get("weight"),
                 "battery": r.get("battery"),
             }
         return updates

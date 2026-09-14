@@ -2,10 +2,10 @@ class Truck:
 
     def __init__(self):
 
-        # 车辆容量
+        # Capacidad del vehículo
         self.capacity = 5.0
 
-        # 当前已收集
+        # Carga recolectada actual
         self.load = 0.0
 
     def reset(self):

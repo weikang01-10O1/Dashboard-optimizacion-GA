@@ -12,10 +12,10 @@ class Node:
 
     lon: float
 
-    # 当前填充率 (%)
+    # Nivel de llenado actual (%)
     fill: int = 0
 
-    # 垃圾桶总容量 (m³)
+    # Capacidad total del contenedor (m³)
     capacity: float = 1.0
 
     battery: float = 4.2
@@ -31,6 +31,6 @@ class Node:
     @property
     def current_volume(self):
         """
-        当前垃圾体积 (m³)
+        Volumen actual de residuos (m³)
         """
         return round(self.capacity * self.fill / 100, 2)

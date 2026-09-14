@@ -3,22 +3,9 @@ from models.truck import Truck
 
 
 # --------------------------------------------------
-# 传统路线：按给定顺序遍历所有节点（忽略阈值）
+# Ruta tradicional: recorre todos los puntos de recolección (ignorando el umbral)
+# La secuencia se determina por vecino más próximo y se mantiene fija en todas las simulaciones
 # --------------------------------------------------
-TRADITIONAL_ORDER = [
-    "BDJ_04",
-    "BDJ_03",
-    "BDJ_02",
-    "BDJ_01",
-    "GVA_01",
-    "VALZD_01",
-    "MTJ_06",
-    "ARYSS_01",
-    "RGUAD_01",
-    "MRIDA_01",
-    "ALMDJ_01",
-    "ALBA_01",
-]
 
 
 class RouteService:
@@ -27,7 +14,7 @@ class RouteService:
         self.node_service = node_service
 
     # --------------------------------------------------
-    # 数据模型
+    # Modelo de datos
     # --------------------------------------------------
     def create_data_model(self, threshold=80):
         active_nodes = self.node_service.get_active_nodes(threshold)
@@ -69,15 +56,15 @@ class RouteService:
 
     def build_demand_vector(self, active_nodes):
         """
-        每个节点的需求 (m³)。
-        demands[0] = 0 (depot)。
+        Demanda de cada nodo (m³).
+        demands[0] = 0 (depósito).
         """
         return [0.0] + [round(node.current_volume, 4) for node in active_nodes if node.id != 0]
 
     # --------------------------------------------------
-    # 把 GA 多趟染色体拆成 trips 列表
-    #   chromosome: 例如 [3, 1, 0, 5, 2, 0, 4]
-    #   返回: [[0, 3, 1, 0], [0, 5, 2, 0], [0, 4, 0]]
+    # Convertir cromosoma GA multiviaje en lista de trips
+    #   chromosome: por ejemplo [3, 1, 0, 5, 2, 0, 4]
+    #   retorna: [[0, 3, 1, 0], [0, 5, 2, 0], [0, 4, 0]]
     # --------------------------------------------------
     @staticmethod
     def _chromosome_to_trips(chromosome):
@@ -100,7 +87,7 @@ class RouteService:
             else:
                 current.append(gene)
                 cur_visits.append(gene)
-                # load 由调用方事后按 demands 重算，这里只占位
+                # load se recalcula después por el llamador según demands; aquí solo es marcador
                 load += 0
         if current and len(current) > 1:
             current.append(0)
@@ -110,7 +97,7 @@ class RouteService:
         return trips, loads, visits
 
     # --------------------------------------------------
-    # 用 demands 重算每趟真实装载量
+    # Recalcular la carga real de cada viaje usando demands
     # --------------------------------------------------
     @staticmethod
     def _recompute_trip_loads(trips, demands):
@@ -123,7 +110,7 @@ class RouteService:
         return loads
 
     # --------------------------------------------------
-    # 用距离/时间矩阵给一趟计算统计
+    # Calcular métricas de un viaje con matrices de distancia/tiempo
     # --------------------------------------------------
     @staticmethod
     def _trip_metrics(trip, dist_mat, time_mat):
@@ -135,8 +122,8 @@ class RouteService:
         return d, t
 
     # --------------------------------------------------
-    # 把 trips 转成前端画图用的段 (含 is_return 标记)
-    # 每趟的最后一段 (回仓库) 为虚线
+    # Convertir trips en segmentos para dibujo en frontend (incluye marca is_return)
+    # El último segmento de cada viaje (retorno al depósito) se muestra punteado
     # --------------------------------------------------
     def _build_segments(self, trips, trip_loads, active_nodes):
         segments = []
@@ -178,7 +165,7 @@ class RouteService:
         return segments, trip_summaries
 
     # --------------------------------------------------
-    # 汇总 trips 为最终 result 字段
+    # Resumir trips en el objeto final result
     # --------------------------------------------------
     def _summarize(self, trips, trip_loads, active_nodes, distance_matrix, time_matrix, label, visited_ids, extra=None):
         full_path_ids = []
@@ -213,7 +200,7 @@ class RouteService:
         return result
 
     # --------------------------------------------------
-    # GA 优化路线（多趟——把容量编进染色体/适应度）
+    # Ruta optimizada GA (multiviaje, con capacidad incorporada en cromosoma/fitness)
     # --------------------------------------------------
     def solve(self, threshold=80):
         try:
@@ -224,7 +211,7 @@ class RouteService:
         active_nodes = data["active_nodes"]
         demands = data["demands"]
 
-        # 没有除仓库外的活跃节点
+        # No hay nodos activos aparte del depósito
         if len(active_nodes) <= 1:
             return {
                 "success": True,
@@ -249,11 +236,18 @@ class RouteService:
             demands=demands,
             capacity=truck.capacity,
             population_size=120,
-            generations=400,
+            generations=200,
+            crossover_rate=0.9,
+            mutation_rate=0.3,
+            elite_size=2,
+            tournament_size=5,
+            bit_flip_rate=0.05,
+            no_improve_limit=40,
+            mandatory_threshold=0.60,
         )
         ga_result = ga.solve()
 
-        # 染色体里已含分隔 0，去掉最外层 0（首尾）
+        # El cromosoma ya incluye separadores 0; quitar los 0 externos (inicio y fin)
         chromosome = ga_result["route"][1:-1]
         trips, _, visits = self._chromosome_to_trips(chromosome)
         trip_loads = self._recompute_trip_loads(trips, demands)
@@ -269,26 +263,48 @@ class RouteService:
             visited_ids,
             extra={
                 "history": ga_result["history"],
-                "capacity_violation": ga_result.get("capacity_violation", 0),
                 "ga_trip_count": ga_result.get("trip_count", len(trips)),
+                "unserved_volume": ga_result.get("unserved_volume", 0),
+                "selected_count": ga_result.get("selected_count", len(visited_ids)),
+                "objective": ga_result.get("objective"),
             },
         )
         summary["success"] = True
         summary["active_node_ids"] = [n.id for n in active_nodes if n.id != 0]
         return summary
 
+    def _nearest_neighbor_order_ids(self):
+        all_nodes = self.node_service.get_nodes()
+        non_depot_nodes = [n for n in all_nodes if n.id != 0]
+        if not non_depot_nodes:
+            return []
+
+        full_dist = self.matrix.get_distance_matrix()
+        unvisited = {n.id for n in non_depot_nodes}
+        order_ids = []
+        current = 0
+
+        while unvisited:
+            nxt = min(unvisited, key=lambda nid: full_dist.iloc[current, nid])
+            order_ids.append(nxt)
+            unvisited.remove(nxt)
+            current = nxt
+
+        return order_ids
+
     # --------------------------------------------------
-    # 传统路线：固定顺序遍历所有节点，多趟 (使用 GA 同样的容量规则拆分)
+    # Ruta tradicional: visitar todos los nodos en múltiples viajes (misma regla de capacidad que GA)
+    # La secuencia de nodos se genera por vecino más próximo como ruta de referencia fija
     # --------------------------------------------------
     def solve_traditional(self):
-        nodes_by_name = {n.name: n for n in self.node_service.get_nodes()}
+        nodes_by_id = {n.id: n for n in self.node_service.get_nodes()}
+        ordered_ids = self._nearest_neighbor_order_ids()
 
-        ordered_names = [n for n in TRADITIONAL_ORDER if n in nodes_by_name]
-        if not ordered_names:
+        if not ordered_ids:
             return {"success": False, "message": "No nodes for traditional route"}
 
         active_nodes_view = [self.node_service.get_node_by_id(0)] + [
-            nodes_by_name[name] for name in ordered_names
+            nodes_by_id[nid] for nid in ordered_ids
         ]
 
         full_dist = self.matrix.get_distance_matrix()
@@ -307,7 +323,7 @@ class RouteService:
 
         demands = [0.0] + [round(node.current_volume, 4) for node in active_nodes_view[1:]]
 
-        # 用 Truck 贪心拆分固定顺序
+        # Usar Truck para dividir de forma voraz la secuencia fija
         truck = Truck()
         trips = []
         trip_loads = []

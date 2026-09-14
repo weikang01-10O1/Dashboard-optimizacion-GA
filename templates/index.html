@@ -2,78 +2,98 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Smart Waste Dashboard</title>
+    <title>Panel Inteligente de Residuos</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <link rel="stylesheet" href="/static/css/style.css"/>
 </head>
 <body>
     <div id="sidebar">
-        <h2>Dashboard</h2>
+        <h2>Panel</h2>
 
         <div class="card">
-            <h3>Total Nodes</h3>
+            <h3>Nodos Totales</h3>
             <p id="nodeCount"></p>
         </div>
 
         <div class="card">
-            <h3>Average Fill</h3>
+            <h3>Llenado Promedio</h3>
             <p id="avgFill"></p>
         </div>
 
         <div class="card">
-            <h3>Critical Nodes</h3>
+            <h3>Nodos Críticos</h3>
             <p id="critical"></p>
         </div>
 
-        <!-- ===== 优化路线详情 ===== -->
+        <!-- ===== Detalle de ruta optimizada ===== -->
         <div class="card route-card">
-            <h3>GA Optimized Route</h3>
-            <p class="label">Path</p>
+            <h3>Ruta Optimizada (GA)</h3>
+            <p class="label">Ruta</p>
             <p id="opt_path" class="path">—</p>
             <table class="kv">
-                <tr><th>Distance</th><td><span id="opt_distance">—</span> km</td></tr>
-                <tr><th>Time</th><td><span id="opt_time">—</span> min</td></tr>
-                <tr><th>Load</th><td><span id="opt_load">—</span> m³</td></tr>
-                <tr><th>Returns</th><td><span id="opt_returns">—</span></td></tr>
-                <tr><th>Visited</th><td><span id="opt_visited">—</span></td></tr>
+                <tr><th>Distancia</th><td><span id="opt_distance">—</span> km</td></tr>
+                <tr><th>Tiempo</th><td><span id="opt_time">—</span> min</td></tr>
+                <tr><th>Carga</th><td><span id="opt_load">—</span> m³</td></tr>
+                <tr><th>Retornos</th><td><span id="opt_returns">—</span></td></tr>
+                <tr><th>Visitados</th><td><span id="opt_visited">—</span></td></tr>
             </table>
         </div>
 
-        <!-- ===== 传统路线详情 ===== -->
+        <!-- ===== Detalle de ruta tradicional ===== -->
         <div class="card route-card">
-            <h3>Traditional Route</h3>
-            <p class="label">Path</p>
+            <h3>Ruta Tradicional</h3>
+            <p class="label">Ruta</p>
             <p id="trad_path" class="path">—</p>
             <table class="kv">
-                <tr><th>Distance</th><td><span id="trad_distance">—</span> km</td></tr>
-                <tr><th>Time</th><td><span id="trad_time">—</span> min</td></tr>
-                <tr><th>Load</th><td><span id="trad_load">—</span> m³</td></tr>
-                <tr><th>Returns</th><td><span id="trad_returns">—</span></td></tr>
-                <tr><th>Visited</th><td><span id="trad_visited">—</span></td></tr>
+                <tr><th>Distancia</th><td><span id="trad_distance">—</span> km</td></tr>
+                <tr><th>Tiempo</th><td><span id="trad_time">—</span> min</td></tr>
+                <tr><th>Carga</th><td><span id="trad_load">—</span> m³</td></tr>
+                <tr><th>Retornos</th><td><span id="trad_returns">—</span></td></tr>
+                <tr><th>Visitados</th><td><span id="trad_visited">—</span></td></tr>
             </table>
         </div>
 
-        <!-- ===== 对比表 ===== -->
+        <!-- ===== Tabla comparativa ===== -->
         <div class="card">
-            <h3>Comparison (GA vs Trad)</h3>
+            <h3>Comparación (GA vs Trad)</h3>
             <table class="cmp">
                 <thead>
                     <tr><th></th><th>GA</th><th>Trad</th><th>Δ</th></tr>
                 </thead>
                 <tbody>
-                    <tr><th>Distance (km)</th><td id="cmp_dist_g">—</td><td id="cmp_dist_t">—</td><td id="cmp_dist_d">—</td></tr>
-                    <tr><th>Time (min)</th><td id="cmp_time_g">—</td><td id="cmp_time_t">—</td><td id="cmp_time_d">—</td></tr>
-                    <tr><th>Load (m³)</th><td id="cmp_load_g">—</td><td id="cmp_load_t">—</td><td id="cmp_load_d">—</td></tr>
-                    <tr><th>Returns</th><td id="cmp_ret_g">—</td><td id="cmp_ret_t">—</td><td id="cmp_ret_d">—</td></tr>
-                    <tr><th>Visited</th><td id="cmp_vis_g">—</td><td id="cmp_vis_t">—</td><td>—</td></tr>
+                    <tr><th>Distancia (km)</th><td id="cmp_dist_g">—</td><td id="cmp_dist_t">—</td><td id="cmp_dist_d">—</td></tr>
+                    <tr><th>Tiempo (min)</th><td id="cmp_time_g">—</td><td id="cmp_time_t">—</td><td id="cmp_time_d">—</td></tr>
+                    <tr><th>Carga (m³)</th><td id="cmp_load_g">—</td><td id="cmp_load_t">—</td><td id="cmp_load_d">—</td></tr>
+                    <tr><th>Retornos</th><td id="cmp_ret_g">—</td><td id="cmp_ret_t">—</td><td id="cmp_ret_d">—</td></tr>
+                    <tr><th>Visitados</th><td id="cmp_vis_g">—</td><td id="cmp_vis_t">—</td><td>—</td></tr>
                 </tbody>
             </table>
         </div>
 
         <div class="actions">
-            <button onclick="simulate()">Increase Waste</button>
-            <button onclick="optimizeRoute()">Optimize Route</button>
-            <button onclick="openFitnessWindow()">View Fitness Curve</button>
+            <button onclick="simulate()">Aumentar Residuos</button>
+            <button onclick="optimizeRoute()">Optimizar Ruta</button>
+            <button onclick="showTraditionalRoute()">Mostrar Ruta Tradicional en el Mapa</button>
+            <button onclick="openFitnessWindow()">Ver Curva de Fitness</button>
+            <button onclick="exportOptimizationHistory()">Exportar Historial de Optimización (CSV)</button>
+        </div>
+
+        <div class="card">
+            <h3>Historial de Optimización</h3>
+            <p id="historyCount">0 registros</p>
+            <div class="history-wrap">
+                <table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Dist. Ópt.</th>
+                            <th>Dist. Trad.</th>
+                            <th>Δ Dist.</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -84,7 +104,7 @@
     </script>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="/static/js/map.js"></script>
+    <script src="/static/js/map.js?v=3"></script>
     <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
