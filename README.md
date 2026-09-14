@@ -1,4 +1,4 @@
-# Recogida Inteligente de Residuos Agrícolas
+# Recogida inteligente de residuos agrícolas
 
 Panel web para la monitorización de contenedores de residuos agrícolas y la optimización
 de las rutas de recogida. La aplicación compara, sobre el mismo estado de los contenedores,
