@@ -48,6 +48,17 @@ body{
     margin:8px 0 2px 0;
 }
 
+.card .route-desc{
+    margin:6px 0 8px 0;
+    font-size:12px;
+    line-height:1.45;
+    color:#555;
+    background:#F8FAFC;
+    border-left:3px solid #9EB6CF;
+    padding:8px;
+    border-radius:4px;
+}
+
 .card .path{
     font-family:Menlo, Consolas, monospace;
     background:#F0F4F8;
@@ -105,6 +116,40 @@ table.cmp tbody th{
     font-weight:500;
 }
 
+.history-wrap{
+    max-height:220px;
+    overflow:auto;
+    border:1px solid #EEE;
+    border-radius:6px;
+}
+
+table.history-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:11px;
+}
+
+table.history-table th,
+table.history-table td{
+    border-bottom:1px solid #F0F0F0;
+    padding:4px 6px;
+    text-align:right;
+}
+
+table.history-table th:first-child,
+table.history-table td:first-child{
+    text-align:left;
+    white-space:nowrap;
+}
+
+table.history-table thead th{
+    position:sticky;
+    top:0;
+    background:#F8FAFC;
+    color:#333;
+    font-weight:600;
+}
+
 .actions{
     display:flex;
     flex-direction:column;
@@ -133,7 +178,7 @@ button:disabled{
 }
 
 /* ===========================
-   Map 标记样式
+   Estilos de marcadores del mapa
    =========================== */
 .depot-marker-wrap{
     background: transparent;

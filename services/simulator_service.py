@@ -15,17 +15,27 @@ class SimulatorService:
 
                 continue
 
-            increase=random.randint(1,4)
+            # Incremento de residuos: distribución uniforme (0.10, 0.20) m³
+
+            MIN_INCREASE_M3=0.10
+
+            MAX_INCREASE_M3=0.20
+
+            increase_m3=random.uniform(MIN_INCREASE_M3,MAX_INCREASE_M3)
+
+            # Conversión a % del contenedor (0.10 m³ = 10% si la capacidad es 1 m³)
+
+            capacity=node.capacity if node.capacity else 1.0
+
+            increase_percent=increase_m3/capacity*100
 
             node.fill=min(
 
                 100,
 
-                node.fill+increase
+                round(node.fill+increase_percent,1)
 
             )
-
-            node.weight=node.fill*10
 
             node.rssi=random.randint(-120,-90)
 
@@ -41,7 +51,7 @@ class SimulatorService:
 
                 node.status="green"
 
-            elif node.fill<80:
+            elif node.fill<70:
 
                 node.status="orange"
 

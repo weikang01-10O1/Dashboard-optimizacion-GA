@@ -1,15 +1,15 @@
 // ===========================
-// 建立地图（以 BIOFARM 为中心）
+// Crear mapa (centrado en BIOFARM)
 // ===========================
 var map = L.map("map").setView([38.831072, -6.782800], 9);
 
-// 保存当前路线层
+// Guardar capas de ruta actuales
 let routeLayers = [];
 
 // Marker registry (id -> Leaflet marker)
 let markersById = {};
 
-// OpenStreetMap 图层
+// Capa de OpenStreetMap
 L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -18,8 +18,8 @@ L.tileLayer(
 ).addTo(map);
 
 // ===========================
-// 自定义 depot (BIOFARM) 图标
-// 橙色星形徽章，明显区别于普通节点
+// Ícono personalizado del depósito (BIOFARM)
+// Insignia naranja con estrella para distinguirlo de nodos normales
 // ===========================
 const depotIcon = L.divIcon({
     className: "depot-marker-wrap",
@@ -29,7 +29,7 @@ const depotIcon = L.divIcon({
 });
 
 // ===========================
-// 步骤编号 divIcon
+// divIcon del número de paso
 // ===========================
 function makeStepIcon(num) {
     return L.divIcon({
@@ -41,15 +41,15 @@ function makeStepIcon(num) {
 }
 
 // ===========================
-// 显示所有节点 (注册到 markersById)
+// Mostrar todos los nodos (registrados en markersById)
 // ===========================
 function popupHtml(node) {
     const isDepot = node.id === 0;
     return (
         "<b>" + node.name + (isDepot ? " (Depot)" : "") + "</b><br>" +
         "Node ID: " + node.id + "<br>" +
-        "Fill: " + node.fill + "%<br>" +
-        "Weight: " + (node.weight || 0) + " kg"
+        "Llenado: " + Number(node.fill).toFixed(1) + "%<br>" +
+        "Capacidad: " + Number(node.capacity || 0).toFixed(1) + " m&sup3;"
     );
 }
 
@@ -65,7 +65,7 @@ nodes.forEach(node => {
     markersById[node.id] = marker;
 });
 
-// 每次 optimize 后用新 fill 刷新 marker popup
+// Después de cada optimización, actualizar los popups de marcadores con el nuevo fill
 function refreshMarkerPopups(updatedNodes) {
     if (!updatedNodes) return;
     updatedNodes.forEach(node => {
@@ -77,7 +77,7 @@ function refreshMarkerPopups(updatedNodes) {
 }
 
 // ===========================
-// 清除旧路线
+// Limpiar ruta anterior
 // ===========================
 function clearRoute() {
     routeLayers.forEach(layer => map.removeLayer(layer));
@@ -85,7 +85,7 @@ function clearRoute() {
 }
 
 // ===========================
-// 在两个坐标的中点放一个步骤编号 (偏移一点避免与节点 marker 重叠)
+// Colocar número de paso en el punto medio de dos coordenadas (con pequeño desplazamiento para evitar solapamiento)
 // ===========================
 function addStepNumber(num, lat, lon) {
     const icon = makeStepIcon(num);
@@ -99,10 +99,10 @@ function addStepNumber(num, lat, lon) {
 }
 
 // ===========================
-// 绘制优化路线（含虚线回程 + 步骤编号）
-// route: 来自 /api/optimize 的 optimized 字段
+// Dibujar ruta optimizada (incluye retorno punteado + numeración de pasos)
+// route: campo optimized proveniente de /api/optimize
 // ===========================
-function drawRoute(routeData) {
+function drawRoute(routeData, mode = "optimized") {
     clearRoute();
 
     if (!routeData || !routeData.segments || routeData.segments.length === 0) {
@@ -111,30 +111,32 @@ function drawRoute(routeData) {
 
     const allPoints = [];
     let stepCounter = 0;
+    const isTraditional = mode === "traditional";
 
     routeData.segments.forEach(seg => {
         const fromPoint = [seg.from.lat, seg.from.lon];
         const toPoint = [seg.to.lat, seg.to.lon];
         allPoints.push(fromPoint, toPoint);
 
-        // 优化路线主体用实线 (蓝色)，回程用虚线 (红色)
         const line = L.polyline([fromPoint, toPoint], {
-            color: seg.is_return ? "#D32F2F" : "#1565C0",
+            color: seg.is_return
+                ? (isTraditional ? "#2E7D32" : "#D32F2F")
+                : (isTraditional ? "#F57C00" : "#1565C0"),
             weight: 4,
             opacity: 0.9,
             dashArray: seg.is_return ? "8,8" : null,
         }).addTo(map);
 
-        // 加 tooltip 提示
         line.bindTooltip(
-            (seg.is_return ? "Return to depot" : "Trip " + (seg.trip_index + 1)) +
+            (seg.is_return
+                ? (isTraditional ? "Traditional return" : "Return to depot")
+                : (isTraditional ? "Traditional trip " : "Trip ") + (seg.trip_index + 1)) +
             "<br>" + seg.from.id + " → " + seg.to.id,
             { sticky: true }
         );
 
         routeLayers.push(line);
 
-        // 在每个非仓库终点的段中点放一个步骤编号徽章
         if (seg.to.id !== 0) {
             stepCounter++;
             const midLat = (seg.from.lat + seg.to.lat) / 2;
@@ -143,7 +145,6 @@ function drawRoute(routeData) {
         }
     });
 
-    // 自动缩放到整条路线
     if (allPoints.length > 0) {
         const bounds = L.latLngBounds(allPoints);
         map.fitBounds(bounds, { padding: [40, 40] });

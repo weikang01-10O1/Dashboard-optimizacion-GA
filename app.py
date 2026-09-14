@@ -1,5 +1,9 @@
+import csv
+from datetime import datetime
+from pathlib import Path
+
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -9,14 +13,14 @@ from services.simulator_service import SimulatorService
 from services.matrix_service import MatrixService
 from services.route_service import RouteService
 # --------------------------------------------------
-# 建立 FastAPI
+# Crear FastAPI
 # --------------------------------------------------
 
 app = FastAPI(title="Smart Waste Collection System")
 
 
 # --------------------------------------------------
-# 掛載 static
+# Montar archivos estáticos
 # --------------------------------------------------
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -30,7 +34,7 @@ templates = Jinja2Templates(directory="templates")
 
 
 # --------------------------------------------------
-# 建立 Service
+# Inicializar servicios
 # --------------------------------------------------
 
 node_service = NodeService()
@@ -42,6 +46,53 @@ matrix_service = MatrixService()
 matrix_service.load()
 
 route_service = RouteService(matrix_service, node_service)
+
+
+# --------------------------------------------------
+# Optimization history persistence
+# --------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+HISTORY_FILE = DATA_DIR / "optimization_history.csv"
+HISTORY_FIELDS = [
+    "timestamp",
+    "opt_distance",
+    "opt_time",
+    "opt_load",
+    "opt_returns",
+    "opt_visited",
+    "opt_path",
+    "trad_distance",
+    "trad_time",
+    "trad_load",
+    "trad_returns",
+    "trad_visited",
+    "trad_path",
+    "delta_distance",
+    "delta_time",
+    "delta_load",
+    "delta_returns",
+]
+
+
+def append_optimization_record(record):
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    file_exists = HISTORY_FILE.exists()
+    with HISTORY_FILE.open("a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=HISTORY_FIELDS)
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(record)
+
+
+def load_optimization_history():
+    if not HISTORY_FILE.exists():
+        return []
+    with HISTORY_FILE.open("r", newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        return list(reader)
+
+
 # --------------------------------------------------
 # Homepage
 # --------------------------------------------------
@@ -62,7 +113,7 @@ async def index(request: Request):
 
 
 # --------------------------------------------------
-# 遗传算法适应度曲线 (弹窗页面)
+# Curva de fitness del algoritmo genético (ventana emergente)
 # --------------------------------------------------
 @app.get("/fitness", response_class=HTMLResponse)
 async def fitness(request: Request):
@@ -73,7 +124,7 @@ async def fitness(request: Request):
 
 
 # --------------------------------------------------
-# 取得所有 Node
+# Obtener todos los nodos
 # --------------------------------------------------
 
 @app.get("/api/nodes")
@@ -99,7 +150,7 @@ async def dashboard():
 
 
 # --------------------------------------------------
-# 模擬垃圾增加
+# Simular aumento de residuos
 # --------------------------------------------------
 
 @app.post("/api/simulate")
@@ -133,7 +184,7 @@ async def model():
 
     return route_service.create_data_model()
 
-#检查API
+# API de verificación
 
 @app.get("/api/test")
 async def test():
@@ -145,16 +196,60 @@ async def test():
     }
 
 
+@app.get("/api/optimization-history")
+async def optimization_history():
+    rows = load_optimization_history()
+    return {"count": len(rows), "rows": rows}
+
+
+@app.get("/api/optimization-history/export")
+async def optimization_history_export():
+    if not HISTORY_FILE.exists():
+        return Response(content="timestamp\n", media_type="text/csv")
+
+    csv_content = HISTORY_FILE.read_text(encoding="utf-8")
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=optimization_history.csv"
+        },
+    )
+
+
 @app.get("/api/optimize")
 async def optimize():
 
-    # 1) 计算传统路线 (基于当前 fill, 尚未重置)
+    # 1) Calcular la ruta tradicional (basada en el fill actual, aún sin reiniciar)
     traditional = route_service.solve_traditional()
 
-    # 2) 跑 GA 优化
+    # 2) Ejecutar optimización GA
     optimized = route_service.solve(80)
 
-    # 3) 把已访问的 active node 的 fill 清零 (用于前端展示和下次 simulate)
+    # 3) Registrar el resultado de esta optimización
+    if optimized.get("success") and traditional.get("success"):
+        record = {
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "opt_distance": optimized.get("total_distance", 0),
+            "opt_time": optimized.get("total_time", 0),
+            "opt_load": optimized.get("total_load", 0),
+            "opt_returns": optimized.get("return_count", 0),
+            "opt_visited": len(optimized.get("visited_ids", [])),
+            "opt_path": optimized.get("path", ""),
+            "trad_distance": traditional.get("total_distance", 0),
+            "trad_time": traditional.get("total_time", 0),
+            "trad_load": traditional.get("total_load", 0),
+            "trad_returns": traditional.get("return_count", 0),
+            "trad_visited": len(traditional.get("visited_ids", [])),
+            "trad_path": traditional.get("path", ""),
+            "delta_distance": round(traditional.get("total_distance", 0) - optimized.get("total_distance", 0), 2),
+            "delta_time": round(traditional.get("total_time", 0) - optimized.get("total_time", 0), 2),
+            "delta_load": round(traditional.get("total_load", 0) - optimized.get("total_load", 0), 2),
+            "delta_returns": traditional.get("return_count", 0) - optimized.get("return_count", 0),
+        }
+        append_optimization_record(record)
+
+    # 4) Poner en cero el fill de los nodos activos visitados (para visualización y siguiente simulación)
     if optimized.get("success") and not optimized.get("empty"):
 
         node_service.reset_fills(optimized.get("visited_ids", []))

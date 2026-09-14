@@ -31,12 +31,12 @@ class NodeService:
 
             self.nodes.append(node)
 
-    # ===== 这里一定要有 =====
+    # ===== Método obligatorio =====
 
     def get_nodes(self):
         return self.nodes
 
-    # ===== Dashboard统计 =====
+    # ===== Estadísticas del panel =====
 
     def get_statistics(self):
 
@@ -45,7 +45,7 @@ class NodeService:
         average = sum(node.fill for node in self.nodes) / total
 
         critical = len(
-            [node for node in self.nodes if node.fill >= 80]
+            [node for node in self.nodes if node.fill >= 85]
         )
 
         return {
@@ -54,14 +54,14 @@ class NodeService:
             "critical": critical
         }
 
-    #NodeService 增加函数
-    def get_active_nodes(self, threshold=80):
+    # Función añadida en NodeService
+    def get_active_nodes(self, threshold=85):
 
         active = []
 
         for node in self.nodes:
 
-        # BIOFARM 永远保留
+        # BIOFARM siempre se mantiene
             if node.id == 0:
                 active.append(node)
                 continue
@@ -79,11 +79,11 @@ class NodeService:
 
             2)
 
-    # ===== 重置已访问节点的 fill =====
+    # ===== Reiniciar fill de nodos visitados =====
 
     def reset_fills(self, visited_ids):
 
-        """把已访问节点的 fill 清零，未访问保持不变"""
+        """Poner en cero el fill de nodos visitados; los no visitados se mantienen igual"""
 
         visited_set = set(visited_ids or [])
 
@@ -92,8 +92,6 @@ class NodeService:
             if node.id in visited_set and node.id != 0:
 
                 node.fill = 0
-
-                node.weight = 0
 
     def get_node_by_id(self, node_id):
 
